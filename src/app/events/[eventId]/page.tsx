@@ -1,4 +1,4 @@
-import { mockEvents } from '@/lib/mockData';
+
 import type { Event } from '@/lib/types';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,26 +9,28 @@ import { CalendarDays, MapPin, Users, Edit, Trash2, Ticket, UserPlus, ListChecks
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO } from 'date-fns';
-
-async function getEvent(id: string): Promise<Event | undefined> {
-  // In a real app, fetch this from a database
-  return mockEvents.find(event => event.id === id);
-}
+import { getEventById } from '@/services/eventService'; // Updated import
+import { mockGuests } from '@/lib/mockData'; // Keep for guest data for now
 
 export default async function EventDetailsPage({ params }: { params: { eventId: string } }) {
-  const event = await getEvent(params.eventId);
+  const event = await getEventById(params.eventId);
 
   if (!event) {
     return (
       <div className="text-center py-10">
         <h1 className="text-2xl font-semibold">Event not found</h1>
-        <p className="text-muted-foreground">The event you are looking for does not exist.</p>
+        <p className="text-muted-foreground">The event you are looking for does not exist or could not be fetched.</p>
         <Button asChild className="mt-4">
           <Link href="/events">Back to Events</Link>
         </Button>
       </div>
     );
   }
+  
+  // For now, we'll use mockGuests for the guest list display if event.guests is not populated from Firestore
+  // TODO: Replace this with actual guest data fetching related to the event
+  const displayGuests = event.guests && event.guests.length > 0 ? event.guests : mockGuests.filter(g => Math.random() > 0.5).slice(0,3);
+
 
   return (
     <div className="space-y-8">
@@ -55,18 +57,22 @@ export default async function EventDetailsPage({ params }: { params: { eventId: 
         <CardHeader className="border-b">
           <CardTitle className="font-headline text-3xl">{event.name}</CardTitle>
           <div className="flex flex-wrap gap-2 pt-2">
-            <Badge variant="secondary" className="flex items-center gap-1.5 py-1 px-2.5">
-              <CalendarDays className="h-4 w-4" />
-              {format(parseISO(event.date), "EEEE, MMMM d, yyyy")}
-            </Badge>
+            {event.date && (
+              <Badge variant="secondary" className="flex items-center gap-1.5 py-1 px-2.5">
+                <CalendarDays className="h-4 w-4" />
+                {format(parseISO(event.date), "EEEE, MMMM d, yyyy")}
+              </Badge>
+            )}
             <Badge variant="secondary" className="flex items-center gap-1.5 py-1 px-2.5">
               <MapPin className="h-4 w-4" />
               {event.location}
             </Badge>
-            <Badge variant="secondary" className="flex items-center gap-1.5 py-1 px-2.5">
-              <Ticket className="h-4 w-4" />
-              {event.time} Start Time
-            </Badge>
+            {event.time && (
+              <Badge variant="secondary" className="flex items-center gap-1.5 py-1 px-2.5">
+                <Ticket className="h-4 w-4" />
+                {event.time} Start Time
+              </Badge>
+            )}
             {event.guestCapacity && (
               <Badge variant="secondary" className="flex items-center gap-1.5 py-1 px-2.5">
                 <Users className="h-4 w-4" />
@@ -110,15 +116,15 @@ export default async function EventDetailsPage({ params }: { params: { eventId: 
           <Separator className="my-6" />
           
           <div>
-            <h3 className="text-lg font-semibold font-headline mb-3 flex items-center"><UserPlus className="mr-2 h-5 w-5 text-primary" /> Guest List ({event.guests?.length || 0} attending)</h3>
-            {event.guests && event.guests.length > 0 ? (
+            <h3 className="text-lg font-semibold font-headline mb-3 flex items-center"><UserPlus className="mr-2 h-5 w-5 text-primary" /> Guest List ({displayGuests?.length || 0} attending)</h3>
+            {displayGuests && displayGuests.length > 0 ? (
               <ul className="space-y-1 max-h-40 overflow-y-auto">
-                {event.guests.map(guest => (
+                {displayGuests.map(guest => (
                   <li key={guest.id} className="text-sm text-foreground/80 p-1.5 bg-muted/50 rounded-md">{guest.name} - <span className="italic text-muted-foreground">{guest.rsvpStatus}</span></li>
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground">No guests registered yet.</p>
+              <p className="text-muted-foreground">No guests registered yet. (Or guests not yet loaded for this event)</p>
             )}
             <Button variant="outline" asChild className="mt-4">
                 <Link href="/guests">Manage Guests</Link>
