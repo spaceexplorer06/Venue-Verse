@@ -1,17 +1,22 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, CalendarCheck2, Users, Lightbulb, Settings, Sun, Moon, Briefcase } from 'lucide-react'; // Added Briefcase
+import { LayoutDashboard, CalendarCheck2, Users, Lightbulb, Settings, Sun, Moon, Briefcase, Wand2 } from 'lucide-react'; // Added Briefcase, Wand2
 import { Separator } from '@/components/ui/separator';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/events', label: 'Events', icon: CalendarCheck2 },
   { href: '/guests', label: 'Guests', icon: Users },
+];
+
+const toolNavItems = [
   { href: '/tools/name-generator', label: 'Name Generator', icon: Lightbulb },
+  { href: '/tools/event-planner', label: 'Event Planner', icon: Wand2 },
 ];
 
 export function SidebarNav() {
@@ -44,6 +49,26 @@ export function SidebarNav() {
             </Link>
           </Button>
         ))}
+        <Separator className="my-3 bg-border/70" />
+        <p className="px-3 py-2 text-xs font-semibold text-muted-foreground/80 tracking-wider uppercase">Tools</p>
+        {toolNavItems.map((item) => (
+          <Button
+            key={item.label}
+            variant="ghost"
+            asChild
+            className={cn(
+              'w-full justify-start text-base h-11 px-3',
+              pathname === item.href
+                ? 'bg-sidebar-active-background text-sidebar-active-foreground hover:bg-sidebar-active-background hover:text-sidebar-active-foreground'
+                : 'hover:bg-sidebar-hover-background hover:text-sidebar-hover-foreground text-sidebar-foreground'
+            )}
+          >
+            <Link href={item.href}>
+              <item.icon className="mr-3 h-5 w-5" />
+              {item.label}
+            </Link>
+          </Button>
+        ))}
       </nav>
       <div className="mt-auto p-4 border-t border-border">
         <Button
@@ -53,12 +78,6 @@ export function SidebarNav() {
           <Settings className="mr-3 h-5 w-5" />
           Settings
         </Button>
-        {/* Theme toggle example - non-functional for now */}
-        {/* <Button variant="ghost" size="icon" className="mt-2">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button> */}
       </div>
     </aside>
   );
