@@ -25,7 +25,7 @@ const GenerateEventPlanOutputSchema = z.object({
   suggestedTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Time must be in HH:MM format." })
     .describe('A suggested start time for the event in HH:MM 24-hour format.'),
   suggestedLocation: z.string().describe('A specific type of location or a general venue suggestion suitable for the event theme and activities (e.g., "Spacious conference hall downtown", "Rustic barn in the countryside", "Online via Zoom for a virtual gathering").'),
-  guestCapacity: z.number().int().positive().optional()
+  guestCapacity: z.number().int().min(1, { message: "Guest capacity must be at least 1."}).optional()
     .describe('An estimated guest capacity appropriate for the event. Omit if not applicable or hard to determine based on the theme alone.'),
 });
 export type GenerateEventPlanOutput = z.infer<typeof GenerateEventPlanOutputSchema>;
@@ -70,3 +70,4 @@ const generateEventPlanFlow = ai.defineFlow(
     return output;
   }
 );
+
